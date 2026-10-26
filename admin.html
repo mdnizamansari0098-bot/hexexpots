@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -522,14 +521,14 @@
 
     <script>
         const firebaseConfig = {
-  apiKey: "AIzaSyDE4hSnUEKP7X2s7M3rU-P6P6CyPmgK5Jc",
-  authDomain: "hex-exports-1dedd.firebaseapp.com",
-  projectId: "hex-exports-1dedd",
-  storageBucket: "hex-exports-1dedd.firebasestorage.app",
-  messagingSenderId: "1053296685675",
-  appId: "1:1053296685675:web:a0dc416bb431d6cb59b72e",
-  measurementId: "G-6BJY6K7K80"
-};
+            apiKey: "AIzaSyDHw-6OuMhCax6GPdTKUpfHPlHP8F1RdkA",
+            authDomain: "tnvesports-be595.firebaseapp.com",
+            databaseURL: "https://tnvesports-be595-default-rtdb.firebaseio.com",
+            projectId: "tnvesports-be595",
+            storageBucket: "tnvesports-be595.firebasestorage.app",
+            messagingSenderId: "9381926702",
+            appId: "1:9381926702:web:16e128802e414b681d0cbf"
+        };
         
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const auth = firebase.auth(); const db = firebase.firestore();
@@ -586,7 +585,7 @@ window.processRefund = async (tid, reason) => {
                 } else {
                     isLoginMode = false; document.getElementById('adminLoginBtn').innerText = "REGISTER AS ADMIN"; document.getElementById('authSubtitle').innerText = "Create Master Admin Account";
                 }
-            } catch(e) { isLoginMode = true; }
+            } catch(e) { console.error('Firestore error:', e); isLoginMode = true; document.getElementById('adminLoginBtn').innerText = "LOGIN SECURELY"; document.getElementById('authSubtitle').innerText = "DB error: " + (e.code || e.message) + " (Firestore rules/database check karo)"; }
         }
         checkAdminExists();
 
@@ -1029,6 +1028,24 @@ window.processRefund = async (tid, reason) => {
         window.fetchSocialLinks = async () => { const docSnap = await db.collection("settings").doc("socials").get(); if(docSnap.exists) { const d = docSnap.data(); document.getElementById('socWhatsapp').value = d.whatsapp || ''; document.getElementById('socInstagram').value = d.instagram || ''; document.getElementById('socDiscord').value = d.discord || ''; document.getElementById('socTelegram').value = d.telegram || ''; document.getElementById('socYoutube').value = d.youtube || ''; } };
         window.saveSocialLinks = async () => { try { const data = { whatsapp: document.getElementById('socWhatsapp').value, instagram: document.getElementById('socInstagram').value, discord: document.getElementById('socDiscord').value, telegram: document.getElementById('socTelegram').value, youtube: document.getElementById('socYoutube').value, updatedAt: new Date() }; await db.collection("settings").doc("socials").set(data); alert("Social Links Saved!"); } catch(e) { alert("Failed"); } };
 
-    </script>
+    
+// ---- HexPay auto-verify (admin panel khula rahe) ----
+setInterval(async () => {
+  if(!auth.currentUser) return;
+  try {
+    const snap = await db.collection('deposits').where('type','==','HexPay').where('status','==','Pending').limit(20).get();
+    for(const d of snap.docs){ const x = d.data();
+      let s; try { s = await (await fetch('https://hexupi.xyz/api/v1/status/'+d.id)).json(); } catch(e){ continue; }
+      if(!s || !s.ok) continue;
+      if(s.status==='EXPIRED'){ await d.ref.update({status:'Expired'}); continue; }
+      if(!s.paid || !String(s.order_id||'').includes(x.userId) || Number(s.amount)!==Number(x.amount)) continue;
+      await db.runTransaction(async tx => { const f = await tx.get(d.ref); if(f.data().status!=='Pending') return;
+        tx.update(db.collection('users').doc(x.userId), {'wallets.deposit': firebase.firestore.FieldValue.increment(Number(x.amount))});
+        tx.update(d.ref, {status:'Approved', paidAt:new Date()});
+        tx.set(db.collection('transactions').doc(), {userId:x.userId,type:'Deposit',desc:'HexPay UPI',amount:Number(x.amount),status:'Success',date:new Date()}); });
+    }
+  } catch(e) { console.log('hexpay verify', e); }
+}, 15000);
+</script>
 </body>
 </html>
