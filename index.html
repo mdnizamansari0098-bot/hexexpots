@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -607,21 +606,21 @@
         const APP_VERSION = 1;
 
   const firebaseConfig = {
-  apiKey: "AIzaSyDE4hSnUEKP7X2s7M3rU-P6P6CyPmgK5Jc",
-  authDomain: "hex-exports-1dedd.firebaseapp.com",
-  projectId: "hex-exports-1dedd",
-  storageBucket: "hex-exports-1dedd.firebasestorage.app",
-  messagingSenderId: "1053296685675",
-  appId: "1:1053296685675:web:a0dc416bb431d6cb59b72e",
-  measurementId: "G-6BJY6K7K80"
-};
+        apiKey: "AIzaSyDHw-6OuMhCax6GPdTKUpfHPlHP8F1RdkA",
+        authDomain: "tnvesports-be595.firebaseapp.com",
+        databaseURL: "https://tnvesports-be595-default-rtdb.firebaseio.com",
+        projectId: "tnvesports-be595",
+        storageBucket: "tnvesports-be595.firebasestorage.app",
+        messagingSenderId: "9381926702",
+        appId: "1:9381926702:web:16e128802e414b681d0cbf"
+    };
 
    
         if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
         const auth = firebase.auth(); const db = firebase.firestore();
 window.esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const HEX_SERVER = "https://YOUR-SERVER-URL"; // <-- deploy /server and put its https URL here
+const HEX_API_KEY = "hex_live_74a1e7ccec442a4e66b2939e2581361a98be48ac"; // <-- HexPay "Keys & URL" wali key yahan daalo
 
         window.currentUser = null; window.userData = null; window.appSettings = { pricing: {} }; window.appSocials = {}; window.allTournaments = []; window.selectedMatch = null; window.selectedSlots = []; let chatUnsubscribe = null; let countdownInterval = null; window.notifsEnabled = true; window.allUserTxns = []; let gChatUnsub = null; let scheduleInterval = null; let adTimerInt = null; let dmChatUnsub = null;
         window.lastChatTime = 0; 
@@ -1515,11 +1514,11 @@ const HEX_SERVER = "https://YOUR-SERVER-URL"; // <-- deploy /server and put its 
             const amt = Number(document.getElementById('depAmtInput').value); let minDep = window.appSettings?.minDeposit || 10;
             if(window.userData.vipExpiry && new Date() < new Date(window.userData.vipExpiry)) minDep = Math.max(1, Math.floor(minDep/2));
             if(!amt || amt < minDep) return showToast(`Minimum deposit is ₹${minDep}`, true);
-            try { const tk = await auth.currentUser.getIdToken();
-              const r = await fetch(HEX_SERVER + '/api/create-order', { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+tk}, body: JSON.stringify({amount: amt}) });
+            try { const r = await fetch('https://hexupi.xyz/api/v1/create-order', { method:'POST', headers:{'x-api-key':HEX_API_KEY,'Content-Type':'application/json'}, body: JSON.stringify({ amount: amt, order_id: `HX-${window.currentUser.uid}-${Date.now()}` }) });
               const d = await r.json(); if(!d.pay_url) return showToast(d.error || 'Order failed', true);
+              await db.collection('deposits').doc(d.id).set({ userId: window.currentUser.uid, userEmail: window.userData?.email || '', amount: amt, payable: d.payable, type: 'HexPay', proofUrl: d.id, status: 'Pending', createdAt: new Date() });
               closeDepositModal();
-              HexPay.open({ pay_url: d.pay_url, onSuccess: () => { showToast('Payment received! Wallet updating...'); setTimeout(async()=>{ await loadUserProfile(window.currentUser.uid); await loadUserTransactions(); }, 4000); }, onClose: () => showToast('Payment closed', true) });
+              HexPay.open({ pay_url: d.pay_url, onSuccess: () => { showToast('Payment received! Wallet 1 minute me update ho jayega.'); setTimeout(async()=>{ await loadUserProfile(window.currentUser.uid); await loadUserTransactions(); }, 4000); }, onClose: () => showToast('Payment closed', true) });
             } catch(e) { showToast('Payment server error', true); }
         };
         window.goToDepositStepManual = () => { 
