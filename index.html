@@ -569,7 +569,11 @@
                 <div class="input-group" style="margin-bottom: 20px;"><i class="fa-solid fa-indian-rupee-sign" style="font-size: 20px; color: var(--primary);"></i><input type="number" id="depAmtInput" class="auth-input" style="font-size: 24px; font-weight: bold; padding-left: 50px;" placeholder="0"></div>
                 <div style="font-size: 11px; margin-bottom: 10px; color: var(--text-sub);">Quick Amount</div>
                 <div class="quick-amt-grid"><div class="quick-amt-btn" onclick="setDepAmt(10)">₹10</div><div class="quick-amt-btn" onclick="setDepAmt(20)">₹20</div><div class="quick-amt-btn" onclick="setDepAmt(30)">₹30</div><div class="quick-amt-btn" onclick="setDepAmt(50)">₹50</div><div class="quick-amt-btn" onclick="setDepAmt(100)">₹100</div><div class="quick-amt-btn" onclick="setDepAmt(500)">₹500</div></div>
-                <button class="btn-main" onclick="goToDepositStep2()">Next Step <i class="fa-solid fa-arrow-right"></i></button>
+                <div style="font-size: 11px; margin-bottom: 10px; color: var(--text-sub);">Select Payment Method</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-main" onclick="goToDepositStep2()"><i class="fa-solid fa-bolt"></i> Hex UPI Auto</button>
+                    <button class="btn-outline" onclick="goToDepositStepManual()"><i class="fa-solid fa-qrcode"></i> Manual UPI QR</button>
+                </div>
             </div>
             
             <div id="depStep2" style="display: none;">
