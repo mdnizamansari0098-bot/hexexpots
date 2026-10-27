@@ -437,7 +437,7 @@
                 <div class="form-card active">
                     <h4 style="color: var(--warning); margin-bottom: 15px;">Core Details</h4>
                     <div class="form-group"><label class="form-label">Signup Bonus (₹)</label><input type="number" id="setSignupBonus" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">WhatsApp Floating Number</label><input type="number" id="setFloatWa" class="form-input" placeholder="Ex: 9876543210"></div>
+                    <div class="form-group"><label class="form-label">Telegram Floating Link</label><input type="text" id="setFloatTg" class="form-input" placeholder="Ex: https://t.me/yourusername"></div>
                     
                     <h4 style="color: var(--info); margin: 15px 0;">Payment Details</h4>
                     <div class="form-row"><div class="form-group"><label class="form-label">Admin UPI ID</label><input type="text" id="setUpi" class="form-input"></div><div class="form-group"><label class="form-label">Deposit QR Code URL (or Upload)</label><div style="display:flex; gap:5px;"><input type="file" id="setQrFile" accept="image/*" style="width:100px; font-size:9px;" class="form-input"><input type="text" id="setQrUrl" class="form-input" placeholder="Image URL"></div></div></div>
@@ -996,7 +996,7 @@ window.processRefund = async (tid, reason) => {
             const docSnap = await db.collection("settings").doc("general").get();
             if(docSnap.exists) {
                 const d = docSnap.data();
-                document.getElementById('setSignupBonus').value = d.signupBonus || ''; document.getElementById('setFloatWa').value = d.whatsappFloat || '';
+                document.getElementById('setSignupBonus').value = d.signupBonus || ''; document.getElementById('setFloatTg').value = d.telegramFloat || '';
                 document.getElementById('setUpi').value = d.upiId || ''; document.getElementById('setQrUrl').value = d.qrUrl || '';
                 document.getElementById('sAppVer').value = d.latestVersion || 1; document.getElementById('sUpdateLink').value = d.updateLink || '';
                 document.getElementById('setPrivacy').value = d.privacyPolicy || ''; document.getElementById('setFairPlay').value = d.fairPlayPolicy || '';
@@ -1010,7 +1010,7 @@ window.processRefund = async (tid, reason) => {
                 const qrFile = document.getElementById('setQrFile').files[0];
                 if(qrFile) { qrUrl = await window.uploadImage(qrFile, 'settings'); document.getElementById('setQrUrl').value = qrUrl; }
                 
-                await db.collection("settings").doc("general").set({ signupBonus: Number(document.getElementById('setSignupBonus').value), whatsappFloat: document.getElementById('setFloatWa').value, privacyPolicy: document.getElementById('setPrivacy').value, fairPlayPolicy: document.getElementById('setFairPlay').value, upiId: document.getElementById('setUpi').value, qrUrl: qrUrl }, {merge:true}); 
+                await db.collection("settings").doc("general").set({ signupBonus: Number(document.getElementById('setSignupBonus').value), telegramFloat: document.getElementById('setFloatTg').value.trim(), privacyPolicy: document.getElementById('setPrivacy').value, fairPlayPolicy: document.getElementById('setFairPlay').value, upiId: document.getElementById('setUpi').value, qrUrl: qrUrl }, {merge:true}); 
                 alert("Core Settings Saved!"); 
                 document.getElementById('setLogoFile').value = ''; document.getElementById('setQrFile').value = '';
             } catch(e) { console.error(e); alert("Error saving settings."); }
