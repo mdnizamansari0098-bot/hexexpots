@@ -103,7 +103,7 @@
         .nav-item.active { color: var(--primary); }
         .nav-item.active i { transform: translateY(-4px); text-shadow: 0 5px 10px var(--primary-glow); }
         
-        .floating-wa { position: fixed; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); right: 20px; background: #25D366; width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 5px 20px rgba(37, 211, 102, 0.5); z-index: 9999; cursor: pointer; transition: 0.3s; text-decoration: none;}
+        .floating-wa { position: fixed; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); right: 20px; background: #229ED9; width: 55px; height: 55px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 5px 20px rgba(34, 158, 217, 0.5); z-index: 9999; cursor: pointer; transition: 0.3s; text-decoration: none;}
         .floating-wa:active { transform: scale(0.9); }
 
         .floating-airdrop { position: fixed; bottom: calc(100px + env(safe-area-inset-bottom, 0px)); left: 20px; background: linear-gradient(135deg, var(--primary-red), #ff5722); width: 55px; height: 55px; border-radius: 50%; display: none; justify-content: center; align-items: center; color: white; font-size: 24px; box-shadow: 0 5px 20px rgba(220, 53, 69, 0.6); z-index: 9998; cursor: pointer; transition: 0.3s; animation: floatBounce 2s infinite; border: 2px solid #fff;}
@@ -366,7 +366,7 @@
             <div class="nav-item" onclick="switchTab('Profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
         </div>
         
-        <a href="#" id="floatingWa" class="floating-wa" target="_blank" onclick="handleWaClick(event)"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="#" id="floatingWa" class="floating-wa" target="_blank" onclick="handleWaClick(event)"><i class="fa-brands fa-telegram"></i></a>
         
         <div id="floatingAirdrop" class="floating-airdrop" onclick="openModal('airdropModal')">
             <i class="fa-solid fa-parachute-box"></i>
@@ -647,7 +647,9 @@ const HEX_API_KEY = "hex_live_74a1e7ccec442a4e66b2939e2581361a98be48ac"; // <-- 
             if(tabId === 'Home') loadHomeData(); if(tabId === 'Leaderboard') loadLeaderboard(); if(tabId === 'Wallet') loadUserTransactions(); if(tabId === 'Profile') { calculateProfileStats(); renderSocials(); } if(tabId === 'Help') renderSocials();
         };
 
-        window.handleWaClick = (e) => { if(!window.appSettings?.whatsapp) { e.preventDefault(); showToast("Admin has not set WhatsApp number yet!", true); } };
+        window.getFloatTgLink = () => { let l = (window.appSettings?.telegramFloat || window.appSocials?.telegram || "").toString().trim(); if(!l) return ""; if(/^https?:\/\//i.test(l)) return l; if(/^t\.me\//i.test(l)) return "https://" + l; return "https://t.me/" + l.replace(/^@/, ""); };
+        window.applyFloatingTg = () => { const fw = document.getElementById('floatingWa'); const l = window.getFloatTgLink(); if(fw && l) { fw.href = l; fw.style.display = 'flex'; } };
+        window.handleWaClick = (e) => { if(!window.getFloatTgLink()) { e.preventDefault(); showToast("Admin has not set Telegram link yet!", true); } };
 
         function listenToAppSchedule() {
             db.collection("settings").doc("appStatus").onSnapshot((docSnap) => {
@@ -704,10 +706,10 @@ const HEX_API_KEY = "hex_live_74a1e7ccec442a4e66b2939e2581361a98be48ac"; // <-- 
                         const a2 = document.getElementById('authLogoImg2'); if(a2) { a2.src = d.logoUrl; a2.style.display = 'block'; }
                         const at2 = document.getElementById('authLogoText2'); if(at2) at2.style.display = 'none';
                     }
-                    if(!d.whatsapp && d.whatsappFloat) d.whatsapp = d.whatsappFloat; if(d.whatsapp && d.whatsapp.toString().trim() !== "") { let waNum = d.whatsapp.toString().trim(); if(waNum.length === 10) waNum = "91" + waNum; const fw = document.getElementById('floatingWa'); if(fw) { fw.href = `https://wa.me/${waNum}?text=${encodeURIComponent("Hi Sir, I am a player on " + (d.appName||"App") + ". I need some support.")}`; fw.style.display = 'flex'; } }
+                    window.applyFloatingTg();
                 }
                 const widSnap = {exists:false}; if(window.appSettings.minWithdraw) window.appSettings.widMin = window.appSettings.minWithdraw; if(window.appSettings.maxWithdraw) window.appSettings.widMax = window.appSettings.maxWithdraw; if(widSnap.exists) { window.appSettings.widMin = widSnap.data().min; window.appSettings.widMax = widSnap.data().max; }
-                const socSnap = await db.collection("settings").doc("socials").get(); if(socSnap.exists) { window.appSocials = socSnap.data(); }
+                const socSnap = await db.collection("settings").doc("socials").get(); if(socSnap.exists) { window.appSocials = socSnap.data(); } window.applyFloatingTg();
                 const refSetSnap = await db.collection("settings").doc("referral").get(); if(refSetSnap.exists) { window.appSettings.referralBonus = refSetSnap.data().bonusAmount; }
                 const priceSnap = await db.collection("settings").doc("pricing").get(); if(priceSnap.exists) { window.appSettings.pricing = priceSnap.data(); } else { window.appSettings.pricing = {}; }
                 
@@ -732,7 +734,7 @@ const HEX_API_KEY = "hex_live_74a1e7ccec442a4e66b2939e2581361a98be48ac"; // <-- 
                 listenToAppSchedule(); 
                 loadHomeData(); await loadUserTransactions(); loadReferralHistory(); renderSocials(); checkAirdrop();
                 try { await db.collection("settings").doc("liveStats").update({ activeCount: firebase.firestore.FieldValue.increment(1) }); } catch(e){} 
-                if(window.appSettings?.whatsapp) { let wn = window.appSettings.whatsapp.toString().trim(); if(wn.length===10) wn="91"+wn; const fw = document.getElementById('floatingWa'); if(fw) fw.href = `https://wa.me/${wn}?text=${encodeURIComponent("Hi Sir, my UID is: " + user.uid.substring(0,8).toUpperCase())}`; }
+                window.applyFloatingTg();
             } else {
                 if(window.currentUser) { try { await db.collection("settings").doc("liveStats").update({ activeCount: firebase.firestore.FieldValue.increment(-1) }); } catch(e){} }
                 window.currentUser = null; window.userData = null; 
